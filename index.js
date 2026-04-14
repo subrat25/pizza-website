@@ -22,6 +22,9 @@ res.send(decodedPublicKey);
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+app.get("/resetPasswordPage", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "reset.html"));
+});
 
 globalThis.UI_key = process.env.UI_key || "default_ui_key";
 app.use(express.json());

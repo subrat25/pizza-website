@@ -14,7 +14,7 @@ const getDbService = () => {
   const service = dbServiceMap[DB_TYPE];
   if (!service) {
     throw new Error(
-      `Invalid DB_TYPE: ${DB_TYPE}. Supported types: MONGO, POSTGRES, MYSQL`
+      `Invalid DB_TYPE: ${DB_TYPE}. Supported types: MONGO, POSTGRES, MYSQL`,
     );
   }
   return service;
@@ -40,9 +40,35 @@ const updateUser = async (userId, updateData) => {
   return await dbService.updateUser(userId, updateData);
 };
 
+const createPasswordResetToken = async (data) => {
+  const dbService = getDbService();
+
+  return await dbService.createPasswordResetToken({
+    userId: data.userId,
+    token: data.token, // already hashed
+    expiresAt: data.expiresAt,
+    used: data.used || false,
+  });
+};
+
+const getPasswordResetToken = async (token) => {
+  const dbService = getDbService();
+
+  return await dbService.getPasswordResetToken(token);
+};
+
+const markTokenAsUsed = async (token) => {
+  const dbService = getDbService();
+
+  return await dbService.markTokenAsUsed(token);
+};
+
 module.exports = {
   findUserByEmail,
   createUser,
   getUserById,
   updateUser,
+  createPasswordResetToken,
+  getPasswordResetToken,
+  markTokenAsUsed,
 };

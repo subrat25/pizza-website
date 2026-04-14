@@ -1,6 +1,7 @@
 const panels = {
   login: document.getElementById("login-section"),
   register: document.getElementById("register-section"),
+  forgotUserPassword: document.getElementById("forgot-password-section"),
   menu: document.getElementById("menu-section"),
   checkout: document.getElementById("checkout-section"),
   status: document.getElementById("status-section"),
@@ -12,11 +13,12 @@ const panels = {
 const baseURL = "";
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
-
+const forgotPasswordForm = document.getElementById("forgot-password-form");
 const goRegisterBtn = document.getElementById("go-register");
+const goForgotPasswordBtn = document.getElementById("go-forgot-password");
 const goLoginBtn = document.getElementById("go-login");
 const registerStatus = document.getElementById("register-status");
-
+const forgotPasswordStatus = document.getElementById("forgot-password-status");
 const menuSearch = document.getElementById("menu-search");
 const menuList = document.getElementById("menu-list");
 const cartList = document.getElementById("cart-list");
@@ -858,10 +860,12 @@ async function loadCart() {
 // -----------------------------
 goRegisterBtn.onclick = () => showPanel("register");
 goLoginBtn.onclick = () => showPanel("login");
+goForgotPasswordBtn.onclick = () => showPanel("forgotUserPassword");
 
 const backLoginBtn = document.getElementById("back-login");
 if (backLoginBtn) backLoginBtn.onclick = () => showPanel("login");
-
+const backLoginBtn2 = document.getElementById("back-login2");
+if (backLoginBtn2) backLoginBtn2.onclick = () => showPanel("login");
 const backMenuBtn = document.getElementById("back-menu");
 if (backMenuBtn) backMenuBtn.onclick = () => showPanel("menu");
 
@@ -968,6 +972,35 @@ loginForm.onsubmit = async (ev) => {
   }
 };
 
+// -----------------------------
+// Forgot Password FLOW 
+// -----------------------------
+forgotPasswordForm.onsubmit = async (ev) => {
+  ev.preventDefault();
+  const email = document.getElementById("forgot-password-email").value.trim();
+  forgotPasswordStatus.textContent = "Sending reset link...";
+
+  try {
+     const res = await fetch(`${baseURL}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      forgotPasswordStatus.textContent = `Failed to send reset link: ${data.error}`;
+      return;
+    }
+
+    forgotPasswordStatus.textContent = "Reset link sent successfully!";
+    showPanel("login");
+  } catch (err) {
+    forgotPasswordStatus.textContent = `Error: ${err.message}`;
+  }
+};
 // -----------------------------
 // MENU EVENTS
 // -----------------------------

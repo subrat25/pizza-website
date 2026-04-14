@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reset Password</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      background: #f4f4f4;
+    }
+
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+
+    .input-group {
+      position: relative;
+      margin: 10px 0;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+    }
+
+    .eye-btn {
+      position: absolute;
+      right: 8px;
+      top: 10px;
+      cursor: pointer;
+      color: #007bff;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
+      background: #ff0000;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>Reset Password</h2>
+
+    <div class="input-group">
+      <input type="password" id="password" placeholder="Enter new password"/>
+      <span class="eye-btn" onclick="togglePassword('password')">👁</span>
+    </div>
+
+    <div class="input-group">
+      <input type="password" id="confirmPassword" placeholder="Retype password"/>
+      <span class="eye-btn" onclick="togglePassword('confirmPassword')">👁</span>
+    </div>
+
+    <button id="submitBtn" disabled>Submit</button>
+    <button id="loginBtn" class="hidden">Go to Login</button>
+
+    <div class="message" id="message"></div>
+  </div>
+
+  <script src="script2.js"></script>
+</body>
+</html>

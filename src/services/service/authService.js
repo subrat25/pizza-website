@@ -1,6 +1,10 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const authDba = require("../../dba/authDba");
+const crypto = require("crypto");
+const emailService = require("./emailService");
+
+
 
 const registerUser = async ({ userName, userEmail, password, address }) => {
   if (!userName || !userEmail || !password) {
@@ -212,6 +216,115 @@ const removeUserAddress = async (userId, index) => {
   };
 };
 
+const forgotUserPassword = async (email) => {
+  if (!email) {
+    throw new Error("Email is required");
+  }
+
+  const user = await authDba.findUserByEmail(email);
+
+  // Always respond same (security best practice)
+  if (!user) {
+    return {
+      success: true,
+      message: "If email exists, reset link sent",
+    };
+  }
+
+  // generate raw token for user
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  // hash token before storing 
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+
+  await authDba.createPasswordResetToken({
+    userId: user.id || user._id,
+    token: hashedToken,
+    expiresAt,
+    used: false,
+  });
+
+  const resetLink = `${process.env.baseURL}/resetPasswordPage?token=${resetToken}`;
+
+  const mailOptions = {
+    from: {
+      name: "The Pizza Store",
+      address: process.env.GMAIL_USER,
+    },
+    to: email,
+    subject: "Password Reset Request",
+    html: `
+      <h2>Password Reset</h2>
+      <p>This link expires in 10 minutes.</p>
+      <a href="${resetLink}">Reset Password</a>
+    `,
+  };
+
+  try {
+    await emailService.sendEmail(mailOptions);
+  } catch (err) {
+    console.error("Email failed:", err.message);
+  }
+
+  return {
+    success: true,
+    message: "If email exists, reset link sent",
+  };
+};
+
+
+const resetUserPassword = async (token, newPassword) => {
+  if (!token || !newPassword) {
+    throw new Error("Token and new password are required");
+  }
+
+  // hash incoming token to match DB
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex");
+
+  // fetch token record
+  const tokenData = await authDba.getPasswordResetToken(hashedToken);
+
+  if (!tokenData) {
+    throw new Error("Invalid or expired token");
+  }
+
+  if (tokenData.used) {
+    throw new Error("Token already used");
+  }
+
+  if (new Date() > new Date(tokenData.expiresAt)) {
+    throw new Error("Token expired");
+  }
+
+  const user = await authDba.getUserById(tokenData.userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await authDba.updateUser(tokenData.userId, {
+    password: hashedPassword,
+  });
+
+  // mark token as used (CRITICAL)
+  await authDba.markTokenAsUsed(hashedToken);
+
+  return {
+    success: true,
+    message: "Password reset successful",
+  };
+};
+
+
 module.exports = {
   registerUser,
   loginUser,
@@ -220,4 +333,6 @@ module.exports = {
   addUserAddress,
   updateUserPassword,
   removeUserAddress,
+   forgotUserPassword,   
+  resetUserPassword,   
 };

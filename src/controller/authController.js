@@ -99,10 +99,40 @@ const logout = async (req, res) => {
     return res.status(400).json({ error: err.message });
   }
 };
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const result = await authMapperService.forgotUserPassword(email);
+
+    return res.json(result);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    let { token, newPassword } = req.body;
+    if(!token) token = req.query.token; // Support token in query params for GET requests
+    const result = await authMapperService.resetUserPassword(
+      token,
+      newPassword
+    );
+
+    return res.json(result);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
 module.exports = {
   login,
   register,
   logout,
+  forgotPassword,
+  resetPassword,
   getProfile,
   updateProfile,
   addAddress,

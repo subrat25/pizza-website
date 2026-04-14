@@ -1,5 +1,5 @@
 const UserProfile = require("./models/userProfileModel");
-
+const PasswordResetToken = require("./models/passwordResetModel");
 const findUserByEmail = async (email) => {
   try {
     const user = await UserProfile.findOne({ userEmail: email });
@@ -47,9 +47,51 @@ const updateUser = async (userId, updateData) => {
   }
 };
 
+const createPasswordResetToken = async (data) => {
+  try {
+    const { userId, token, expiresAt, used } = data;
+
+    const resetToken = await PasswordResetToken.create({
+      userId,
+      token,
+      expiresAt,
+      used: used || false,
+    });
+
+    return resetToken;
+  } catch (error) {
+    throw new Error(`Error creating reset token: ${error.message}`);
+  }
+};
+const getPasswordResetToken = async (token) => {
+  try {
+    const resetToken = await PasswordResetToken.findOne({ token });
+    return resetToken;
+  } catch (error) {
+    throw new Error(`Error fetching reset token: ${error.message}`);
+  }
+};
+const markTokenAsUsed = async (token) => {
+  try {
+    const updated = await PasswordResetToken.findOneAndUpdate(
+      { token },
+      { used: true },
+      { new: true }
+    );
+
+    return updated;
+  } catch (error) {
+    throw new Error(`Error marking token as used: ${error.message}`);
+  }
+};
+
+
 module.exports = {
   findUserByEmail,
   createUser,
   getUserById,
   updateUser,
+  createPasswordResetToken,
+  getPasswordResetToken,
+  markTokenAsUsed,
 };

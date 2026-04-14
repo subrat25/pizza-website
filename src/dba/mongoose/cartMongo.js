@@ -1,27 +1,4 @@
-const mongoose = require("mongoose");
-
-const cartItemSchema = new mongoose.Schema(
-  {
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-    price: { type: Number, required: true },
-    qty: { type: Number, required: true },
-    tags: { type: [String], default: [] },
-  },
-  { _id: false }
-);
-
-const cartSchema = new mongoose.Schema(
-  {
-    userId: { type: String, required: true, unique: true },
-    items: { type: [cartItemSchema], default: [] },
-    totalAmount: { type: Number, default: 0 },
-  },
-  { timestamps: true }
-);
-
-const CartModel = mongoose.model("cart", cartSchema);
-
+const CartModel = require("./models/cartModel");
 const getCartByUserId = async (userId) => {
   try {
     let cart = await CartModel.findOne({ userId });
