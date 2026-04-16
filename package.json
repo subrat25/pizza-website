@@ -4,8 +4,8 @@
   "description": "Pizza delivery website with login, menu customization, checkout, Stripe integration, and order status.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "node index.js",
+    "start": "nodemon index.js"
   },
   "author": "Subrat",
   "license": "ISC",
@@ -19,7 +19,7 @@
     "mongoose": "^9.3.3",
     "nodemailer": "^8.0.5",
     "stripe": "^12.0.0",
-    "uuid": "^13.0.0"
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
