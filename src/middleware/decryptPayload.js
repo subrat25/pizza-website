@@ -12,7 +12,7 @@ function decryptPayloadL1(req, res, next) {
     }
 
     const UI_KEY = globalThis.UI_key;
-    const salt = "some_salt_value";
+    const salt = UI_KEY; 
 
     // Derive AES key from UI_KEY
     const key = crypto.pbkdf2Sync(UI_KEY, salt, 100000, 32, "sha256");

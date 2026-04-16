@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 const { connect, disconnect } = require("mongoose");
 let isConnected = false;
-
+const clientOptions = {
+  family: 4,
+  serverApi: { version: "1", strict: true, deprecationErrors: true },
+};
 const connectMongo = async () => {
   try {
     if (isConnected) {
@@ -12,8 +15,7 @@ const connectMongo = async () => {
     if (!process.env.MONGO_URI) {
       throw new Error("MONGO_URI is missing in environment variables");
     }
-
-    const conn = await mongoose.connect(process.env.MONGO_URI);
+    const conn = await mongoose.connect(process.env.MONGO_URI, clientOptions);
 
     isConnected = true;
     console.log("MongoDB Connected:", conn.connection.host);

@@ -138,7 +138,7 @@ async function encryptBody2(data, secretKey) {
   const key = await crypto.subtle.deriveKey(
     {
       name: "PBKDF2",
-      salt: enc.encode("some_salt_value"),
+      salt: enc.encode(UI_key),
       iterations: 100000,
       hash: "SHA-256",
     },
