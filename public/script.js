@@ -98,7 +98,7 @@ async function initEncryption() {
 
     UI_key_PUBLIC = await importPublicKey(UI_key_raw);
 
-    UI_key = await fetch(`${baseURL}/api/uiKey`).then((res) => res.text());
+    // UI_key = await fetch(`${baseURL}/api/uiKey`).then((res) => res.text());
   } catch (err) {
     console.error("Key load failed:", err);
   }
@@ -109,61 +109,45 @@ initEncryption();
 // -----------------------------
 // ENCRYPTION HELPERS
 // -----------------------------
-async function encryptBody(data, publicKey) {
-  const encoded = new TextEncoder().encode(JSON.stringify(data));
-
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "RSA-OAEP" },
-    publicKey,
-    encoded,
-  );
-
-  return btoa(String.fromCharCode(...new Uint8Array(encrypted)));
-}
-async function encryptBody2(data, secretKey) {
-  if (!secretKey || secretKey === undefined) {
-    console.log("UI_key is missing. Cannot encrypt request.");
-    throw new Error("UI_key missing. Cannot encrypt request.");
-  }
-
-  const enc = new TextEncoder();
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(secretKey),
-    "PBKDF2",
-    false,
-    ["deriveKey"],
-  );
-
-  const key = await crypto.subtle.deriveKey(
-    {
-      name: "PBKDF2",
-      salt: enc.encode(UI_key),
-      iterations: 100000,
-      hash: "SHA-256",
-    },
-    keyMaterial,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt"],
-  );
-
-  const encryptedBuffer = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    key,
-    enc.encode(JSON.stringify(data)),
-  );
-
-  return {
-    iv: Array.from(iv),
-    payload: btoa(String.fromCharCode(...new Uint8Array(encryptedBuffer))),
-  };
-}
 async function securePost(url, bodyObj, extraHeaders = {}) {
-  const encryptedL1 = await encryptBody(bodyObj, UI_key_PUBLIC);
-  const encryptedL2 = await encryptBody2(encryptedL1, UI_key);
+  const enc = new TextEncoder();
+
+  // 1. Generate random AES key (32 bytes)
+  const aesKeyRaw = crypto.getRandomValues(new Uint8Array(32));
+
+  // 2. Import AES key
+  const aesKey = await crypto.subtle.importKey(
+    "raw",
+    aesKeyRaw,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"]
+  );
+
+  // 3. Encrypt payload using AES
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encryptedPayloadBuffer = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    aesKey,
+    enc.encode(JSON.stringify(bodyObj))
+  );
+
+  const encryptedPayload = btoa(
+    String.fromCharCode(...new Uint8Array(encryptedPayloadBuffer))
+  );
+
+  // 4. Encrypt AES key using RSA
+  const encryptedKeyBuffer = await crypto.subtle.encrypt(
+    { name: "RSA-OAEP" },
+    UI_key_PUBLIC,
+    aesKeyRaw
+  );
+
+  const encryptedKey = btoa(
+    String.fromCharCode(...new Uint8Array(encryptedKeyBuffer))
+  );
+
+  // 5. Send both
   return fetch(url, {
     method: "POST",
     headers: {
@@ -172,7 +156,11 @@ async function securePost(url, bodyObj, extraHeaders = {}) {
       ...extraHeaders,
       ...getAuthHeaders(),
     },
-    body: JSON.stringify(encryptedL2),
+    body: JSON.stringify({
+      key: encryptedKey,
+      iv: Array.from(iv),
+      payload: encryptedPayload,
+    }),
   });
 }
 
@@ -847,7 +835,15 @@ async function loadCart() {
         ...getAuthHeaders()
       },
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      if (res.status === 403) {
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("currentUser");
+        currentUser = null;
+        updateUserMenuState();
+        showPanel("login");
+      }
+      return;}
 
     const cartData = await res.json();
     cart = cartData.items || [];
@@ -919,7 +915,7 @@ registerForm.onsubmit = async (ev) => {
       pin: document.getElementById("reg-pin").value.trim(),
     },
   ];
-
+console.log("Registering with:", { userName, userEmail, password, address });
   try {
     const res = await securePost(`${baseURL}/api/auth/register`, {
       userName,
@@ -938,6 +934,7 @@ registerForm.onsubmit = async (ev) => {
     registerStatus.textContent = "Registration successful! Please login.";
     showPanel("login");
   } catch (err) {
+    console.error("Registration error:", err);
     registerStatus.textContent = `Error: ${err.message}`;
   }
 };
@@ -1086,6 +1083,14 @@ menuList.addEventListener("click", async (e) => {
     });
 
     if (!res.ok) {
+      if (res.status === 403) {
+        alert("Session expired. Please login again.");
+        localStorage.removeItem("currentUser");
+        currentUser = null;
+        updateUserMenuState();
+        showPanel("login");
+      }
+
       throw new Error("Failed to update cart");
     }
 
@@ -1464,7 +1469,7 @@ if (savedUser) {
 // -----------------------------
 // LOGOUT
 // -----------------------------
-menuLogout.onclick = async () => {
+const userLogout =async () => {
   if (!confirm("Are you sure you want to logout?")) return;
 
   try {
@@ -1488,3 +1493,4 @@ menuLogout.onclick = async () => {
 
   showPanel("login");
 };
+menuLogout.onclick = userLogout;

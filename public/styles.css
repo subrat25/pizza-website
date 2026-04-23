@@ -39,12 +39,160 @@ header {
 .panel { display: none; }
 .panel.active { display: block; }
 
-input, button {
+/* Form Sections: Login, Register, Profile */
+#login-section.active,
+#register-section.active,
+#forgot-password-section.active {
+  width: 50%;
+  margin: 0 auto;
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+#login-section.active h2,
+#register-section.active h2,
+#forgot-password-section.active h2 {
+  margin-top: 0;
+  color: #333;
+  text-align: center;
+}
+
+#login-section.active form,
+#register-section.active form,
+#forgot-password-section.active form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#login-section.active label,
+#register-section.active label,
+#forgot-password-section.active label {
+  display: block;
+  margin-bottom: 5px;
+  color: #555;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+#login-section.active input,
+#register-section.active input,
+#forgot-password-section.active input{
   width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+#login-section.active input:focus,
+#register-section.active input:focus,
+#forgot-password-section.active input:focus{
+  outline: none;
+  border-color: #d82d1f;
+  box-shadow: 0 0 0 3px rgba(216, 45, 31, 0.1);
+  background-color: #fafafa;
+}
+
+#login-section.active button,
+#register-section.active button,
+#forgot-password-section.active button{
+  width: 100%;
+  padding: 12px;
+  margin-top: 5px;
+  background: #d82d1f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#login-section.active button:hover,
+#register-section.active button:hover,
+#forgot-password-section.active button:hover {
+  background: #c41f15;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(216, 45, 31, 0.3);
+}
+
+#login-section.active button:active,
+#register-section.active button:active,
+#forgot-password-section.active button:active {
+  transform: translateY(0);
+}
+
+#login-section.active h3,
+#register-section.active h3 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: #333;
+  font-size: 1.1rem;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+
+#login-section.active .password-field,
+#register-section.active .password-field {
+  position: relative;
+  margin-top: 5px;
+  display: block;
+}
+
+#login-section.active .password-field input,
+#register-section.active .password-field input{
+  padding-right: 40px;
+}
+
+#login-section.active p,
+#register-section.active p,
+#forgot-password-section.active p {
+  color: #666;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+/* Secondary buttons in form sections */
+#login-section.active #go-register,
+#login-section.active #go-forgot-password,
+#register-section.active #back-login,
+#forgot-password-section.active #back-login2{
+  background: #f0f0f0;
+  color: #333;
+  border: 2px solid #d82d1f;
+  margin-top: 10px;
+}
+
+#login-section.active #go-register:hover,
+#login-section.active #go-forgot-password:hover,
+#register-section.active #back-login:hover,
+#forgot-password-section.active #back-login2:hover {
+  background: #e8e8e8;
+  color: #d82d1f;
+}
+
+@media (max-width: 768px) {
+  #login-section.active,
+  #register-section.active,
+  #forgot-password-section.active {
+    width: 100%;
+    margin: 0;
+    padding: 20px; /* optional: slightly reduce padding for small screens */
+    border-radius: 0; /* optional: looks cleaner on mobile full width */
+  }
+}
+
+input, button {
+  width: 95%;
   padding: 10px;
   margin-top: 5px;
 }
-
 button, .generate-btn {
   min-width: 70px;
 }
@@ -179,7 +327,7 @@ button {
   min-width: 200px;
  
   background: rgba(255, 136, 0, 0.12);
-  backdrop-filter: blur(12px);
+  /* backdrop-filter: blur(12px); */
 
   border: 1px solid rgba(255, 136, 0, 0.3);
   border-radius: 12px;
