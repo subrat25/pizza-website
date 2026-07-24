@@ -58,7 +58,7 @@ const updateCart = async (userId, itemId, qty) => {
       }
       cart = await cartDba.updateCartItem(userId, itemId, qty);
     } else if (qty > 0 && cart1.items.some((i) => i.id === itemId) === false) {
-      cart = addToCart(userId, itemId, qty);
+      cart = await addToCart(userId, itemId, qty);
     }
 
     return cart;
