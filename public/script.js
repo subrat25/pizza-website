@@ -1067,46 +1067,41 @@ menuList.addEventListener("click", async (e) => {
     newQty = newQty > 1 ? newQty - 1 : 0;
   }
 
-  try {
-    const res = await fetch(`${baseURL}/api/cart/update`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify({
-        userId: currentUser?.user?.id,
-        itemId,
-        qty: newQty,
-        itemPrice: menuItem.price,
-      }),
-    });
-
-    if (!res.ok) {
-      if (res.status === 403) {
-        alert("Session expired. Please login again.");
-        localStorage.removeItem("currentUser");
-        currentUser = null;
-        updateUserMenuState();
-        showPanel("login");
-      }
-
-      throw new Error("Failed to update cart");
+ try {
+  const res = await fetch(`${baseURL}/api/cart/update`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({
+      userId: currentUser?.user?.id,
+      itemId,
+      qty: newQty,
+      itemPrice: menuItem.price,
+    }),
+  });
+  if (!res.ok) {
+    if (res.status === 403) {
+      alert("Session expired. Please login again.");
+      localStorage.removeItem("currentUser");
+      currentUser = null;
+      updateUserMenuState();
+      showPanel("login");
     }
-
-    if (newQty === 0) {
-      cart = cart.filter((i) => i.id !== itemId);
-    } else if (cartItem) {
-      cartItem.qty = newQty;
-    } else {
-      cart.push({ ...menuItem, qty: newQty });
-    }
-
-    refreshCart();
-    renderMenu(menuItems); // re-render to update UI
-  } catch (err) {
-    alert(err.message);
+    throw new Error("Failed to update cart");
   }
+  // Get updated cart from backend
+  const updatedCart = await res.json();
+
+  // Replace local cart with  Updatedcart Response or retain existing cart if response is empty
+  cart = updatedCart?.items ?? cart;
+  refreshCart();
+  renderMenu(menuItems);
+
+} catch (err) {
+  alert(err.message);
+}
 });
 
 /*
@@ -1209,12 +1204,13 @@ cartList.addEventListener("click", async (e) => {
   try {
     const res = await fetch(`${baseURL}/api/cart/update`, {
       method: "POST",
-      headers: { "Content-Type": "application/json",
-        ...getAuthHeaders()
-       },
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify({
         userId: currentUser?.user?.id,
-        itemId: itemId,
+        itemId,
         qty: newQty,
       }),
     });
@@ -1223,12 +1219,9 @@ cartList.addEventListener("click", async (e) => {
       throw new Error("Failed to update cart");
     }
 
-    if (newQty <= 0) {
-      cart = cart.filter((i) => i.id !== itemId);
-    } else {
-      cartItem.qty = newQty;
-    }
-
+    const updatedCart = await res.json();
+    // Replace local cart with  Updatedcart Response or retain existing cart if response is empty
+    cart = updatedCart?.items ?? cart;
     refreshCart();
     renderMenu(menuItems);
   } catch (error) {
