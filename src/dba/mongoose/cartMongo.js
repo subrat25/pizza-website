@@ -1,24 +1,33 @@
 const CartModel = require("./models/cartModel");
 
 const deduplicateCart = (cart) => {
+  if (cart?.items?.length <= 1) {
+    return  cart;
+  }
   const itemMap = new Map();
-
   for (const item of cart.items) {
-    if (itemMap.has(item.id)) {
-      itemMap.get(item.id).qty += item.qty;
+    const existing = itemMap.get(item.id);
+
+    if (existing) {
+      existing.qty += item.qty;
     } else {
       itemMap.set(item.id, { ...(item.toObject?.() ?? item) });
     }
   }
 
-  const updatedItems = Array.from(itemMap.values());
+  // No duplicates found
+  if (itemMap.size === cart.items.length) {
+    return  cart;
+  }
+
+  const updatedItems = [...itemMap.values()];
 
   return {
     ...(cart.toObject?.() ?? cart),
     items: updatedItems,
     totalAmount: updatedItems.reduce(
       (sum, item) => sum + item.price * item.qty,
-      0,
+      0
     ),
   };
 };
