@@ -1,11 +1,13 @@
 const CartModel = require("./models/cartModel");
+const calculateTotal = (items) =>
+  items.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-const deduplicateCart = (cart) => {
-  if (cart?.items?.length <= 1) {
-    return  cart;
+const deduplicateCartItems = (cartItems) => {
+if (cartItems?.length <= 1) {
+    return  cartItems;
   }
   const itemMap = new Map();
-  for (const item of cart.items) {
+  for (const item of cartItems) {
     const existing = itemMap.get(item.id);
 
     if (existing) {
@@ -16,20 +18,11 @@ const deduplicateCart = (cart) => {
   }
 
   // No duplicates found
-  if (itemMap.size === cart.items.length) {
-    return  cart;
+  if (itemMap.size === cartItems.length) {
+    return  cartItems;
   }
-
   const updatedItems = [...itemMap.values()];
-
-  return {
-    ...(cart.toObject?.() ?? cart),
-    items: updatedItems,
-    totalAmount: updatedItems.reduce(
-      (sum, item) => sum + item.price * item.qty,
-      0
-    ),
-  };
+  return updatedItems;
 };
 
 const getCartByUserId = async (userId) => {
@@ -63,11 +56,10 @@ const addItemToCart = async (userId, item) => {
         cart.items.push(item);
       }
 
-      const updatedCart = deduplicateCart(cart);
+    const updatedCartItems = deduplicateCartItems(cart.items);
 
-      cart.items = updatedCart.items;
-      cart.totalAmount = updatedCart.totalAmount;
-
+    cart.items = updatedCartItems;
+    cart.totalAmount = calculateTotal(cart.items);
       await cart.save();
     }
 
@@ -97,10 +89,10 @@ const updateCartItem = async (userId, itemId, qty) => {
       item.qty = qty;
     }
 
-    const updatedCart = deduplicateCart(cart);
+    const updatedCartItems = deduplicateCartItems(cart.items);
 
-    cart.items = updatedCart.items;
-    cart.totalAmount = updatedCart.totalAmount;
+    cart.items = updatedCartItems;
+    cart.totalAmount = calculateTotal(cart.items);
 
     await cart.save();
 
@@ -120,10 +112,10 @@ const removeItemFromCart = async (userId, itemId) => {
 
     cart.items = cart.items.filter((i) => i.id !== itemId);
 
-    const updatedCart = deduplicateCart(cart);
+   const updatedCartItems = deduplicateCartItems(cart.items);
 
-    cart.items = updatedCart.items;
-    cart.totalAmount = updatedCart.totalAmount;
+    cart.items = updatedCartItems;
+    cart.totalAmount = calculateTotal(cart.items);
 
     await cart.save();
 
