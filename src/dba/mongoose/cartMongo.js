@@ -37,9 +37,9 @@ const getCartByUserId = async (userId) => {
   }
 };
 
-const addItemToCart = async (userId, item) => {
+const addItemToCart = async (userId, item, retivedCart) => {
   try {
-    let cart = await CartModel.findOne({ userId });
+    let cart = retivedCart ? retivedCart : await CartModel.findOne({ userId });
 
     if (!cart) {
       cart = await CartModel.create({
@@ -69,9 +69,9 @@ const addItemToCart = async (userId, item) => {
   }
 };
 
-const updateCartItem = async (userId, itemId, qty) => {
+const updateCartItem = async (userId, itemId, qty,retivedCart) => {
   try {
-    const cart = await CartModel.findOne({ userId });
+    const cart = retivedCart? retivedCart : await CartModel.findOne({ userId });
 
     if (!cart) {
       throw new Error("Cart not found");

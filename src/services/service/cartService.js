@@ -1,7 +1,7 @@
 const cartDba = require("../../dba/cartDba");
 const inventoryDba = require("../../dba/inventoryDba");
 
-const addToCart = async (userId, itemId, qty) => {
+const addToCart = async (userId, itemId, qty, cart=null) => {
   try {
     // Check inventory availability
     const available = await inventoryDba.checkAvailability(itemId, qty);
@@ -15,7 +15,7 @@ const addToCart = async (userId, itemId, qty) => {
       throw new Error("Item not found");
     }
     let trueQty = qty;
-    const retrivedCart = await cartDba.getCartByUserId(userId);
+    const retrivedCart = cart ? cart : await cartDba.getCartByUserId(userId);
     if (retrivedCart && retrivedCart.items.some((i) => i.id === itemId)) { 
       trueQty = retrivedCart.items.find((i) => i.id === itemId).qty + qty;
     }
@@ -30,8 +30,8 @@ const addToCart = async (userId, itemId, qty) => {
     };
 
     // Add to cart
-    const cart = await cartDba.addItemToCart(userId, cartItem);
-    return cart;
+    const updatedCart  = await cartDba.addItemToCart(userId, cartItem);
+    return updatedCart;
   } catch (error) {
     throw new Error(`Error adding to cart: ${error.message}`);
   }
@@ -48,17 +48,21 @@ const removeFromCart = async (userId, itemId) => {
 
 const updateCart = async (userId, itemId, qty) => {
   try {
+    if (qty && qty <= 0) {
+      const cart = await removeFromCart(userId, itemId);
+      return cart;
+    }
+    // Check inventory availability for updated quantity
+    const available = await inventoryDba.checkAvailability(itemId, qty);
+    if (!available) {
+      throw new Error("Insufficient inventory");
+    }
     let cart1 = await cartDba.getCartByUserId(userId);
     let cart;
-    if (qty > 0 && cart1.items.some((i) => i.id === itemId)) {
-      // Check inventory availability for updated quantity
-      const available = await inventoryDba.checkAvailability(itemId, qty);
-      if (!available) {
-        throw new Error("Insufficient inventory");
-      }
-      cart = await cartDba.updateCartItem(userId, itemId, qty);
-    } else if (qty > 0 && cart1.items.some((i) => i.id === itemId) === false) {
-      cart = await addToCart(userId, itemId, qty);
+    if (cart1.items.some((i) => i.id === itemId)) {
+      cart = await cartDba.updateCartItem(userId, itemId, qty, cart1);
+    } else if (cart1.items.some((i) => i.id === itemId) === false) {
+      cart = await addToCart(userId, itemId, qty, cart1);
     }
 
     return cart;

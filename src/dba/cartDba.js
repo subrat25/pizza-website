@@ -25,9 +25,9 @@ const getCartByUserId = async (userId) => {
   return await dbService.getCartByUserId(userId);
 };
 
-const addItemToCart = async (userId, item) => {
+const addItemToCart = async (userId, item, cart) => {
   const dbService = getDbService();
-  return await dbService.addItemToCart(userId, item);
+  return await dbService.addItemToCart(userId, item, cart);
 };
 
 const removeItemFromCart = async (userId, itemId) => {
@@ -35,9 +35,9 @@ const removeItemFromCart = async (userId, itemId) => {
   return await dbService.removeItemFromCart(userId, itemId);
 };
 
-const updateCartItem = async (userId, itemId, qty) => {
+const updateCartItem = async (userId, itemId, qty,cart) => {
   const dbService = getDbService();
-  return await dbService.updateCartItem(userId, itemId, qty);
+  return await dbService.updateCartItem(userId, itemId, qty,cart);
 };
 
 const clearCart = async (userId) => {
