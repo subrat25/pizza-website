@@ -1,10 +1,10 @@
 const cartDba = require("../../dba/cartDba");
 const inventoryDba = require("../../dba/inventoryDba");
 
-const addToCart = async (userId, itemId, qty, cart=null) => {
+const addToCart = async (userId, itemId, qty, cart=null,availabilityCheck=false) => {
   try {
     // Check inventory availability
-    const available = await inventoryDba.checkAvailability(itemId, qty);
+    const available = availabilityCheck? availabilityCheck : await inventoryDba.checkAvailability(itemId, qty);
     if (!available) {
       throw new Error("Insufficient inventory");
     }
@@ -59,10 +59,11 @@ const updateCart = async (userId, itemId, qty) => {
     }
     let cart1 = await cartDba.getCartByUserId(userId);
     let cart;
-    if (cart1.items.some((i) => i.id === itemId)) {
+    let hasItem = cart1.items.some((i) => i.id === itemId);
+    if (hasItem) {
       cart = await cartDba.updateCartItem(userId, itemId, qty, cart1);
-    } else if (cart1.items.some((i) => i.id === itemId) === false) {
-      cart = await addToCart(userId, itemId, qty, cart1);
+    } else {
+      cart = await addToCart(userId, itemId, qty, cart1,available);
     }
 
     return cart;
