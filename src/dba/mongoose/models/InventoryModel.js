@@ -4,6 +4,7 @@ const inventorySchema = new mongoose.Schema(
   {
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
+    imgURL:{ type: String, required: false },
     price: { type: Number, required: true },
     tags: { type: [String], default: [] },
     availableQty: { type: Number, required: true, default: 0 },

@@ -691,7 +691,7 @@ function renderMenu(items) {
   menuList.innerHTML = "";
 
   aliasItems.forEach((item) => {
-    const imgUrl = 'images/' + (item.name) + '.jpg';
+    const imgUrl = item.imgURL || "images/default.jpg";
     const card = document.createElement("div");
     card.className = "menu-card";
 
